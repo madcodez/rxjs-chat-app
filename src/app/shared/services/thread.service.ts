@@ -26,7 +26,7 @@ export class ThreadService{
 
                    const messagesThread  : Thread = threads[message.thread.id];
                    if( !messagesThread.lastMessage || message.sentAt < messagesThread.lastMessage.sentAt){
-                    threads[message.thread.id].lastMessage = message;
+                    messagesThread.lastMessage = message;
                    }
                });
 
@@ -37,13 +37,15 @@ export class ThreadService{
 
        this.orderedThread = this.threads.map( (threadsIdx : {[key: string] : Thread}) =>{
            const threads =_.values(threadsIdx);
-           return _.sortBy(threads).reverse();
+           return _.sortBy(threads,(t : Thread)=> t.lastMessage.sentAt).reverse();
        });
       
-
+    //  console.log(this.currentThread)
    
-      this.currentThreadMessages= combineLatest(messageService.messages,this.currentThread,(currentThread: Thread , messages : Message[])=>{
+      this.currentThreadMessages= combineLatest(this.currentThread,messageService.messages,(currentThread: Thread , messages : Message[])=>{
+       
         if(currentThread && messages.length > 0){
+            
             return _.chain(messages)
                     .filter((message : Message) => message.thread.id === currentThread.id)
                     .map((message : Message)=>{
